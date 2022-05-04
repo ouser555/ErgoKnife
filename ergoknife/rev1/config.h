@@ -3,10 +3,10 @@
 #pragma once
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID       0xFEED
+#define VENDOR_ID       0xFE1D
 #define PRODUCT_ID      0x6060
 #define DEVICE_VER      0x0100
-#define MANUFACTURER    Omkbd
+#define MANUFACTURER    Touchsensor
 #define PRODUCT         Ergoknife
 
 
