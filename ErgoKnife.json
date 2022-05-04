@@ -1,6 +1,6 @@
 {
-  "name": "ErgoDashV99",
-  "vendorId": "0xFEED",
+  "name": "ErgoKnife",
+  "vendorId": "0xFE1D",
   "productId": "0x6060",
   "lighting": {
     "extends": "qmk_backlight_rgblight"
