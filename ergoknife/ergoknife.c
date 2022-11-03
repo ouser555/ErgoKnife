@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "ergoknife.h"
 
-#ifdef OLED_ENABLE
+//#ifdef OLED_ENABLE
+#if 0
 static void render_logo(void) {
     static const char PROGMEM raw_logo[] = {
         // '115', 128x32px
@@ -49,31 +50,48 @@ enum layers {
     _ADJUST,
 };
 
+//static int8_t V99_X_TRANSFORM_M =  1;
+//static int8_t V99_Y_TRANSFORM_M =  1;
+//static int8_t V99_X_TRANSFORM_S =  1;
+//static int8_t V99_Y_TRANSFORM_S =  1;
+
+
 static void render_status(void) {
     // Host Keyboard Layer Status
-    oled_write_P(PSTR("Layer: "), false);
+    
+    oled_write_P(PSTR("-----LAYER"), false);
     switch (get_highest_layer(layer_state)) {
         case _QWERTY:
-            oled_write_P(PSTR("Default\n"), false);
+            oled_write_P(PSTR(" DEF \n"), false);
             break;
         case _LOWER:
-            oled_write_P(PSTR("Lower\n"), false);
+            oled_write_P(PSTR(" LWR \n"), false);
             break;
         case _RAISE:
-            oled_write_P(PSTR("Raise\n"), false);
+            oled_write_P(PSTR(" RIS \n"), false);
             break;
         case _ADJUST:
-            oled_write_P(PSTR("Adjust\n"), false);
+            oled_write_P(PSTR(" ADJ \n"), false);
             break;
         default:
-            oled_write_P(PSTR("Undefined\n"), false);
+            oled_write_P(PSTR(" UDF \n"), false);
     }
-
+    oled_write_P(PSTR("-----STATS"), false);
+    //oled_write_P(PSTR("STATS"), false);
+    //oled_write_P(PSTR("\n\n\n"), false);
     // Host Keyboard LED Status
     led_t led_state = host_keyboard_led_state();
-    oled_write_P(led_state.num_lock ? PSTR("NUMLCK ") : PSTR("       "), false);
-    oled_write_P(led_state.caps_lock ? PSTR("CAPLCK ") : PSTR("       "), false);
-    oled_write_P(led_state.scroll_lock ? PSTR("SCRLCK ") : PSTR("       "), false);
+    oled_write_P(led_state.num_lock ? PSTR("NUM:@") : PSTR("NUM:_"), false);
+    oled_write_P(led_state.caps_lock ? PSTR("CAP:@") : PSTR("CAP:_"), false);
+    oled_write_P(led_state.scroll_lock ? PSTR("SCR:@") : PSTR("SCR:_"), false);
+    oled_write_P(PSTR("-----TPMODLEFT "), false);
+    //oled_write_P(PSTR("TPMOD"), false);
+    //oled_write_P(PSTR("LEFT "), false);
+    oled_write_P(PSTR(" Mx2 "), false);
+    oled_write_P(PSTR("RIGHT"), false);
+    oled_write_P(PSTR(" Scl "), false);
+    //oled_write_P(V99_X_TRANSFORM_M, false);
+    oled_write_char((get_highest_layer(layer_state)+48), false);
 }
 
 bool oled_task_kb(void) {
@@ -85,4 +103,13 @@ bool oled_task_kb(void) {
     }
     return true;
 }
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    if (is_keyboard_master()) {
+        return OLED_ROTATION_270;  // flips the display 270 degrees if offhand
+    }
+
+    return rotation;
+}
+
 #endif

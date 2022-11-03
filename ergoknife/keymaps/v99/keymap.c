@@ -1,32 +1,34 @@
 // Copyright 2021 Joric (@joric)
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include QMK_KEYBOARD_H
-#include "keyboards/jorne/keymaps/v99/i2cc.h"
-#include "keyboards/jorne/keymaps/v99/v99i2chw.h"
+#include "keyboards/ergoknife/keymaps/v99/i2cc.h"
+#include "keyboards/ergoknife/keymaps/v99/v99i2chw.h"
 
 #include "pointing_device.h"
-#include "transactions.h"
-#include "transport.h"
-#include "transaction_id_define.h"
+//#include "transactions.h"
+//#include "transport.h"
+//#include "transaction_id_define.h"
 
-void process_mouse(report_mouse_t* mouse_report);
-void process_mouse_user(report_mouse_t* mouse_report, int16_t x, int16_t y);
-void process_wheel(report_mouse_t* mouse_report);
-void process_wheel_user(report_mouse_t* mouse_report, int16_t h, int16_t v);
 
-#define V99_DPI_OPTIONS { 1, 2, 3, 4, 5, 6 }
-#define V99_DPI_MASTER_DEFAULT 1
-#define V99_DPI_SLAVE_DEFAULT 1
+//void process_mouse(report_mouse_t* mouse_report);
+//void process_mouse_user(report_mouse_t* mouse_report, int16_t x, int16_t y);
+//void process_wheel(report_mouse_t* mouse_report);
+//void process_wheel_user(report_mouse_t* mouse_report, int16_t h, int16_t v);
 
 #ifndef V99_DRAGSCROLL_DPI
 #define V99_DRAGSCROLL_DPI 1 // Fixed-DPI Drag Scroll
 #endif
+
+#define V99_DPI_OPTIONS { 1, 2, 3, 4, 5, 6 }
 uint16_t dpi_array[] = V99_DPI_OPTIONS;
 #define DPI_OPTION_SIZE (sizeof(dpi_array) / sizeof(uint16_t))
 
-static int8_t V99_X_TRANSFORM_M = -1;
+#define V99_DPI_MASTER_DEFAULT 0
+#define V99_DPI_SLAVE_DEFAULT 0
+
+static int8_t V99_X_TRANSFORM_M =  1;
 static int8_t V99_Y_TRANSFORM_M =  1;
-static int8_t V99_X_TRANSFORM_S = -1;
+static int8_t V99_X_TRANSFORM_S =  1;
 static int8_t V99_Y_TRANSFORM_S =  1;
 
 typedef union {
@@ -42,23 +44,15 @@ static user_config_t user_config;
 static int8_t wheelh = 0;
 static int8_t wheelv = 0;
 
-#define V99_WHEEL_H_DIV 10
-#define V99_WHEEL_V_DIV 20
+#define V99_WHEEL_H_DIV 15
+#define V99_WHEEL_V_DIV 25
 
 static bool is_drag_scroll_m = 0;
 static bool is_drag_scroll_s = 0;
 
 #define V99MASTER 0x11
-static int16_t s2m_x = 0;
-static int16_t s2m_y = 0;
-
-#if 1
-//const static float V99_X_TRANSFORM = -1;//-2.5;
-//const static float V99_Y_TRANSFORM = -1;//2.5;
-//const static float V99_WHEEL_H_DIV = 10;
-//const static float V99_WHEEL_V_DIV = 20;
-//static bool is_drag_scroll = 0;
-#endif
+//static int16_t s2m_x = 0;
+//static int16_t s2m_y = 0;
 
 enum layers {
     _QWERTY = 0,
@@ -81,6 +75,7 @@ enum custom_keycodes {
   DRAG_SCROLL_M,
   DRAG_SCROLL_S,
   RGBRST,
+  OLED_SW,
   V99_SAFE_RANGE,
 };
 
@@ -166,8 +161,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_F11,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_LCBR,                        KC_RCBR, KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F12,  \
     KC_TILD, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC, KC_UNDS,                        KC_PLUS, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_PIPE, \
     KC_TAB,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_DEL ,                        KC_BSPC, KC_H,    KC_J,    KC_K,    KC_L,    KC_COLN, KC_DQT , \
-    KC_LSFT, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_SPC ,                        KC_ENT , KC_N,    KC_M,    KC_LT,   KC_GT,   KC_QUES, KC_RSFT, \
-    KC_LCTL, KC_LGUI, KC_LALT, EISU,             LOWER,   KC_SPC ,KC_DEL,         KC_BSPC,KC_ENT , RAISE,            KC_HOME, KC_PGDN, DPI_CONFIG_S, DPI_CONFIG_M   \
+    KC_LSFT, KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_SPC ,                        KC_ENT , KC_N,    KC_M,    KC_LT,   KC_GT,   DRAG_SCROLL_M, DRAG_SCROLL_S, \
+    KC_LCTL, KC_LGUI, KC_LALT, EISU,             LOWER,   KC_SPC ,KC_DEL,         KC_BSPC,KC_ENT , RAISE,            KC_HOME, KC_PGDN, DPI_CONFIG_M, DPI_CONFIG_S   \
   ),
 
   /* Adjust
@@ -253,8 +248,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           user_config.v99_dpi_master = (user_config.v99_dpi_master + 1) % DPI_OPTION_SIZE;
           eeconfig_update_kb(user_config.raw);
           //adns_set_cpi(dpi_array[user_config.v99_dpi_master]);
-          V99_X_TRANSFORM_M = dpi_array[user_config.v99_dpi_master] * -1;
-          V99_Y_TRANSFORM_M = dpi_array[user_config.v99_dpi_master] *  1;
+          V99_X_TRANSFORM_M = dpi_array[user_config.v99_dpi_master];
+          V99_Y_TRANSFORM_M = dpi_array[user_config.v99_dpi_master];
 
           eeconfig_update_user(user_config.raw); // Write default value to EEPROM now
       }
@@ -266,8 +261,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           user_config.v99_dpi_slave = (user_config.v99_dpi_slave + 1) % DPI_OPTION_SIZE;
           eeconfig_update_kb(user_config.raw);
           //adns_set_cpi(dpi_array[user_config.v99_dpi_master]);
-          V99_X_TRANSFORM_S = dpi_array[user_config.v99_dpi_slave] * -1;
-          V99_Y_TRANSFORM_S = dpi_array[user_config.v99_dpi_slave] *  1;
+          V99_X_TRANSFORM_S = dpi_array[user_config.v99_dpi_slave];
+          V99_Y_TRANSFORM_S = dpi_array[user_config.v99_dpi_slave];
 
           eeconfig_update_user(user_config.raw); // Write default value to EEPROM now
       }
@@ -303,31 +298,19 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 #if 1
 
+#if 1
 float xytrans(uint8_t data,int8_t ts){
 
   int8_t tmp = (int8_t) data;
-  float odata = data * ts;
+  //tmp = tmp/2;
+  float odata = tmp * ts;
 
-  if(abs(ts)>2){
-
-    if(abs(tmp)<2){
-      //odata = data * 2;
-      if(ts > 0 ){
-         odata = data *  3;
-      }else{
-         odata = data * -3;
-      }
-    }else if(abs(tmp)<5){
-      if(ts > 0 ){
-         odata = data *  4;
-      }else{
-         odata = data * -4;
-      }
-    }
-
+  if(abs(tmp)<=1){
+    odata = tmp;
   }
   return odata;
 }
+
 
 float htrans(uint8_t h){
   float i = 0;
@@ -356,46 +339,14 @@ float vtrans(uint8_t v){
   }
   return i;
 }
+#endif
 
+#if 0
 __attribute__((weak)) void process_mouse_user(report_mouse_t* mouse_report, int16_t x, int16_t y) {
     //mouse_report->x = x/3;
     //mouse_report->y = y/3;
 }
 
-#if 0
-__attribute__((weak)) void process_mouse(report_mouse_t* mouse_report) {
-
-	  float xt = 0;
-	  float yt = 0;
-
-    //report_v99_t data = v99_slim_read_burst();
-		report_v99_t data;
-		//data.dx = v99_read(REG_PRODUCT_ID);
-		data.dx = v99_read(REG_DELTA_X);
-		data.dy = v99_read(REG_DELTA_Y);
-
-
-
-    if (data.dx != 0 || data.dy != 0) {
-        //if (debug_mouse)
-        //    dprintf("Raw ] X: %d, Y: %d\n", data.dx, data.dy);
-
-        // Apply delta-X and delta-Y transformations.
-				if(abs(data.dx)>1 || abs(data.dy)>1){
-				  xt = (float) data.dx * V99_X_TRANSFORM;
-          yt = (float) data.dy * V99_Y_TRANSFORM;
-			  }else{
-					xt = (float) data.dx * -1;
-          yt = (float) data.dy * -1;
-				}
-
-        int16_t xti = (int16_t)xt;
-        int16_t yti = (int16_t)yt;
-
-        process_mouse_user(mouse_report, xti, yti);
-    }
-}
-#else
 __attribute__((weak)) void process_mouse(report_mouse_t* mouse_report) {
 
 	float xt = 0;
@@ -459,13 +410,21 @@ __attribute__((weak)) void process_mouse(report_mouse_t* mouse_report) {
       data.dx = 0;
       data.dy = 0;
 
+      //xt = 0;
+      //yt = 0;
+      //ht = 0;
+      //vt = 0;
+
     }else{ // keyboard slave
+    //}else if(is_keyboard_slave()) {
       // send xy value to keyboard master
       s2m_x = data.dx;
       s2m_y = data.dy;
 
       xt = data.dx;
       yt = data.dy;
+      //xt = 0;
+      //yt = 0;
       ht = 0;
       vt = 0;
     }
@@ -474,37 +433,88 @@ __attribute__((weak)) void process_mouse(report_mouse_t* mouse_report) {
 
     mouse_report->h = (int16_t)ht * -1;
     mouse_report->v = (int16_t)vt;
-    mouse_report->x = (int16_t)xt;
+    mouse_report->x = (int16_t)xt * -1;
     mouse_report->y = (int16_t)yt * -1;
 
 }
 #endif
 
 #if 0
-bool process_record_kb(uint16_t keycode, keyrecord_t* record) {
-
-		if (keycode == KC_M) {
-#ifndef V99PAD_DRAGSCROLL_MOMENTARY
-        if (record->event.pressed)
-#endif
-        {
-            is_drag_scroll ^= 1;
-        }
-    }
-    return true;
-
-}
-#endif
-
 void pointing_device_init(void) {
 
 	v99_init();
     wait_ms(55);
 
 }
+#else
+void  pointing_device_driver_init(void) {
+  v99_init();
+  wait_ms(55);
+}
+#endif
 
+report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
+    report_v99_t data;
+	  //data.dx = v99_read(REG_PRODUCT_ID);
+	  data.dx = v99_read(REG_DELTA_X);
+	  data.dy = v99_read(REG_DELTA_Y);
+    data.dx = data.dx/3;
+    data.dy = data.dy/3;
 
+    if (data.dx != 0 || data.dy != 0) {
+#   ifdef CONSOLE_ENABLE
+      if (debug_mouse) dprintf("Raw ] X: %d, Y: %d\n", data.dx, data.dy);
+#   endif
 
+        mouse_report.x = (mouse_xy_report_t)data.dx;
+        mouse_report.y = (mouse_xy_report_t)data.dy;
+    }
+    return mouse_report;
+}
+
+report_mouse_t pointing_device_task_combined_user(report_mouse_t left_report, report_mouse_t right_report) {
+
+    //float xt = 0;
+  	//float yt = 0;
+    //float ht = 0;
+    //float vt = 0;
+
+    //report_v99_t data = v99_slim_read_burst();
+	  //report_v99_t data;
+	  //data.dx = v99_read(REG_PRODUCT_ID);
+	  //data.dx = v99_read(REG_DELTA_X);
+	  //data.dy = v99_read(REG_DELTA_Y);
+    //data.dx = data.dx/3;
+    //data.dy = data.dy/3;
+
+    if(is_drag_scroll_m){ // master = hv mode
+      left_report.h = (int8_t)htrans(left_report.x);
+      left_report.v = (int8_t)vtrans(-left_report.y);
+      left_report.x = 0;
+      left_report.y = 0;      
+    }else{ // master = xymode
+      left_report.x = (int8_t)xytrans(left_report.x, V99_X_TRANSFORM_M);
+      left_report.y = (int8_t)xytrans(left_report.y, V99_Y_TRANSFORM_M);
+    }
+
+    if(is_drag_scroll_s){ // slave = hv mode
+      right_report.h = (int8_t)htrans(right_report.x);
+      right_report.v = (int8_t)vtrans(-right_report.y);
+      right_report.x = 0;
+      right_report.y = 0;      
+    }else{ // slave = xy mode
+      right_report.x = (int8_t)xytrans(right_report.x, V99_X_TRANSFORM_S);
+      right_report.y = (int8_t)xytrans(right_report.y, V99_Y_TRANSFORM_S);
+    }
+
+    //left_report.h = left_report.x;
+    //left_report.v = left_report.y;
+    //left_report.x = 0;
+    //left_report.y = 0;
+    return pointing_device_combine_reports(left_report, right_report);
+}
+
+#if 0
 void pointing_device_task(void) {
 
     report_mouse_t mouse_report = pointing_device_get_report();
@@ -533,13 +543,15 @@ void user_sync_a_slave_handler(uint8_t in_buflen, const void* in_data, uint8_t o
       s2m->slave_y = s2m_y;
     //}
 }
+#endif
 
+#if 1
 void eeconfig_init_user(void) {  // EEPROM is getting reset!
 
   bool dpi_change_f = false;
   user_config.raw = 0;
-  
-  
+
+
   user_config.raw = eeconfig_read_user();
   if(user_config.v99_dpi_master >= DPI_OPTION_SIZE){
     user_config.v99_dpi_master = V99_DPI_MASTER_DEFAULT;
@@ -550,57 +562,159 @@ void eeconfig_init_user(void) {  // EEPROM is getting reset!
     user_config.v99_dpi_slave = V99_DPI_SLAVE_DEFAULT;
     dpi_change_f = true;
   }
-  
+
   if(dpi_change_f){
     eeconfig_update_user(user_config.raw); // Write default value to EEPROM now
   }
-  
+
   //user_config.v99_dpi_master = V99_DPI_MASTER_DEFAULT; // We want this enabled by default
   //user_config.v99_dpi_slave = V99_DPI_SLAVE_DEFAULT;
-  //eeconfig_update_user(user_config.raw); // Write default value to EEPROM now  
+  //eeconfig_update_user(user_config.raw); // Write default value to EEPROM now
 
 }
 
+#endif
+
+#if 1
 void matrix_init_user(void){
+# ifdef CONSOLE_ENABLE
   dprintf("init MS XY transform value \n");
+# endif
   eeconfig_init_user();
 }
 
 void keyboard_post_init_user(void) {
-    debug_enable=true;
-    debug_matrix=true;
-    transaction_register_rpc(USER_SYNCXY, user_sync_a_slave_handler);
+    //debug_enable=true;
+    //debug_matrix=true;
+    //transaction_register_rpc(USER_SYNCXY, user_sync_a_slave_handler);
 
     user_config.raw = eeconfig_read_user();
 
-    V99_X_TRANSFORM_M = (float)dpi_array[user_config.v99_dpi_master] * (float)-1;
-    V99_Y_TRANSFORM_M = (float)dpi_array[user_config.v99_dpi_master] * (float)1;
-    V99_X_TRANSFORM_S = (float)dpi_array[user_config.v99_dpi_slave]  * (float)-1;
-    V99_Y_TRANSFORM_S = (float)dpi_array[user_config.v99_dpi_slave]  * (float)1;
+    V99_X_TRANSFORM_M = (float)dpi_array[user_config.v99_dpi_master];
+    V99_Y_TRANSFORM_M = (float)dpi_array[user_config.v99_dpi_master];
+    V99_X_TRANSFORM_S = (float)dpi_array[user_config.v99_dpi_slave];
+    V99_Y_TRANSFORM_S = (float)dpi_array[user_config.v99_dpi_slave];
 
 }
+#endif
 
-void housekeeping_task_user(void) {
-    if (is_keyboard_master()) {
-        // Interact with slave every 500ms
-        static uint32_t last_sync = 0;
-        //if (timer_elapsed32(last_sync) > 500) {
-        if (timer_elapsed32(last_sync) > 10) { // 60hz
-            //master_to_slave_t m2s = {V99MASTER};
-            slave_to_master_t s2m = { 0, 0};
 
-            //if(transaction_rpc_exec(USER_SYNCXY, sizeof(m2s), &m2s, sizeof(s2m), &s2m)) {
-            if(transaction_rpc_recv(USER_SYNCXY, sizeof(s2m), &s2m)) {
-                last_sync = timer_read32();
-                //dprintf("Slave X value: %d\n", s2m.slave_x); // this will now be 11, as the slave adds 5
-                //dprintf("Slave Y value: %d\n", s2m.slave_y); // this will now be 11, as the slave adds 5
-                s2m_x = s2m.slave_x;
-                s2m_y = s2m.slave_y;
-            } else {
-                dprint("Slave sync failed!\n");
-            }
+#ifdef OLED_ENABLE
+static void render_logo(void) {
+    static const char PROGMEM raw_logo[] = {
+        // '115', 128x32px
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0xc0, 
+0xe0, 0xe0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 
+0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xe0, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x80, 
+0xe0, 0xe0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 
+0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 
+0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 
+0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 
+0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xe0, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7f, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x87, 0x07, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 
+0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 
+0x03, 0x03, 0x03, 0x03, 0x03, 0x87, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 
+0x01, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 
+0x03, 0x03, 0x03, 0x03, 0x03, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0x3f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x0f, 0x0f, 0x0f, 0x0f, 0x07, 0x00, 0x00, 0x00, 0x00, 0x03, 
+0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 
+0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 
+0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x07, 0x07, 
+0x07, 0x03, 0x03, 0x03, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    oled_write_raw_P(raw_logo, sizeof(raw_logo));
+}
 
-        }
+static void render_status(void) {
+    // Host Keyboard Layer Status
+    
+    oled_write_P(PSTR("-----LAYER"), false);
+    switch (get_highest_layer(layer_state)) {
+        case _QWERTY:
+            oled_write_P(PSTR(" DEF "), false);
+            break;
+        case _LOWER:
+            oled_write_P(PSTR(" LWR "), false);
+            break;
+        case _RAISE:
+            oled_write_P(PSTR(" RIS "), false);
+            break;
+        case _ADJUST:
+            oled_write_P(PSTR(" ADJ "), false);
+            break;
+        default:
+            oled_write_P(PSTR(" UDF "), false);
     }
+    oled_write_P(PSTR("-----STATS-----"), false);
+    //oled_write_P(PSTR("STATS"), false);
+    //oled_write_P(PSTR("\n\n\n"), false);
+    // Host Keyboard LED Status
+    led_t led_state = host_keyboard_led_state();
+    oled_write_P(led_state.num_lock ? PSTR("NUM:@") : PSTR("NUM:_"), false);
+    oled_write_P(led_state.caps_lock ? PSTR("CAP:@") : PSTR("CAP:_"), false);
+    oled_write_P(led_state.scroll_lock ? PSTR("SCR:@") : PSTR("SCR:_"), false);
+    oled_write_P(PSTR("-----TPMODLEFT "), false);
+    //oled_write_P(PSTR("TPMOD"), false);
+    //oled_write_P(PSTR("LEFT "), false);
+
+    if(is_drag_scroll_m){
+        oled_write_P(PSTR(" Scl "), false);
+    }else{
+        oled_write_P(PSTR(" Mx"), false);
+        oled_write_char((user_config.v99_dpi_master+48), false);
+        oled_write_P(PSTR("\n"), false);
+    }
+    //oled_write_P(is_drag_scroll_m ? PSTR(" Scl  ") : PSTR(" Mx  "), false);
+    //oled_write_P(PSTR(" Mx2 "), false);
+    oled_write_P(PSTR("RIGHT"), false);
+    if(is_drag_scroll_s){
+        oled_write_P(PSTR(" Scl "), false);
+    }else{
+        oled_write_P(PSTR(" Mx"), false);
+        oled_write_char((user_config.v99_dpi_slave+48), false);
+        oled_write_P(PSTR("\n"), false);
+    }
+    //oled_write_P(is_drag_scroll_s ? PSTR(" Scl  ") : PSTR(" Mx  "), false);
+    //oled_write_P(PSTR(" Scl "), false);
+    //oled_write_P(V99_X_TRANSFORM_M, false);
+    //oled_write_char((get_highest_layer(layer_state)+48), false);
+    oled_write_P(PSTR("-----"), false);
 }
+
+bool oled_task_kb(void) {
+  if (!oled_task_user()) { return false; }
+    if (is_keyboard_left()) {
+        render_status(); // Renders the current keyboard state (layer, lock, caps, scroll, etc)
+    } else {
+        render_logo();
+        oled_scroll_right();
+    }
+    return true;
+}
+
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
+    if (is_keyboard_master()) {
+        return OLED_ROTATION_270;  // flips the display 270 degrees if offhand
+    }else{ // slaver
+      //oled_scroll_set_speed(0);
+    }
+
+    return rotation;
+}
+
+#endif
 #endif

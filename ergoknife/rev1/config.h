@@ -9,6 +9,7 @@
 #define MANUFACTURER    Touchsensor
 #define PRODUCT         Ergoknife
 
+#define I2C1_CLOCK_SPEED 50000
 
 /* key matrix size */
 /* Rows are doubled up */
@@ -33,8 +34,10 @@
 /*
  * Split Keyboard specific options, make sure you have 'SPLIT_KEYBOARD = yes' in your rules.mk, and define SOFT_SERIAL_PIN.
  */
+//#define USE_I2C
+
 #define SOFT_SERIAL_PIN D2
-#define SELECT_SOFT_SERIAL_SPEED 0
+#define SELECT_SOFT_SERIAL_SPEED 1
 /*Sets the protocol speed when using serial communication*/
 //Speeds:
 //0: about 189kbps (Experimental only)
