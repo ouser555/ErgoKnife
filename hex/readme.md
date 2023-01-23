@@ -7,6 +7,8 @@
   
   * 燒錄檔下載位置
     https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230123.hex
+    
+    (對畫面右上方的RAW按鈕，右鍵另存連結為...)
   
   * 下載VIA 2.10版
     https://github.com/the-via/releases/releases/
