@@ -3,10 +3,19 @@
   
   #### 使用當前最新版本的QMK，它已經將副手的Trackpoint裝置會lag的問題改善了
   
-  #### 限制最大電流，燈光調到最大不會因過載而斷線
+  #### 限制RGB最大電流，燈光調到最大不會因過載而斷線
   
-  #### 燒錄檔下載位置
-  https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230123.hex
+  * 燒錄檔下載位置
+    https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230123.hex
+  
+  * 下載VIA 2.10版
+    https://github.com/the-via/releases/releases/
+    
+  * 下載新的json檔
+    https://github.com/ouser555/ErgoKnife/tree/main/via%20config
+    
+  * 也可以使用網頁版的VIA
+    https://usevia.app/#/
   
 ## 更新通知 20221101
   #### 修復左右手鍵盤通訊延遲的問題
