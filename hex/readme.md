@@ -1,5 +1,7 @@
 ## 更新通知 20230123
-  #### 配合使用VIA configurator 新版本2.10
+  #### 配合使用VIA configurator 新版本2.10，新的via json設定檔
+  
+  #### 限制最大電流，燈光調到最大不會因過載而斷線
   
   #### 燒錄檔下載位置
   https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230123.hex
