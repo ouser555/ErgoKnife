@@ -14,7 +14,7 @@
     https://github.com/the-via/releases/releases/
     
   * 下載新的json檔
-    https://github.com/ouser555/ErgoKnife/blob/main/via%20config/ErgoKnife-20230123.json
+    https://github.com/ouser555/ErgoKnife/blob/main/via%20config/ErgoKnife-20230303.json
     
     (對畫面右上方的RAW按鈕，右鍵另存連結為...)
     
