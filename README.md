@@ -2,7 +2,9 @@
 
 * 更新說明
   20230409-qmk firmware-0.20.4
-  /ergoknife-20230409/
+  https://github.com/ouser555/ErgoKnife/tree/main/ergoknife-20230409
+  https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230409.hex
+  
   * 版本特點
     * 修正電腦關機後再開鍵盤連線會不正常的問題
     * 電腦休眠時RGB自動關閉
