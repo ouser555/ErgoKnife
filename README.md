@@ -2,6 +2,7 @@
 
 * 更新說明
   20230409-qmk firmware-0.20.4
+  
   https://github.com/ouser555/ErgoKnife/tree/main/ergoknife-20230409
   https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230409.hex
   
