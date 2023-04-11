@@ -1,5 +1,8 @@
 ## 測試版
-  * 前一版反映有副手鍵盤Trackpoint漂移的情況，但手邊沒有這款鍵盤可以測試，就只能提供測試黨讓使用者自己測試看看能否解決著個問題。
+  * 前一版反映有副手鍵盤Trackpoint漂移的情況，但手邊沒有這款鍵盤可以測試，
+    就只能提供測試黨讓使用者自己測試看看能否解決著個問題。
+    如果還是不行就只能先刷回20230123的版本了
+    
     * 前一版的修改為
       * /rev1/config.h
         ```
@@ -17,6 +20,26 @@
     * 測試版就是把這幾行拿掉
       https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230411-test.hex
       
+## 更新通知 20230409
+  20230409-qmk firmware-0.20.4
+  
+  * 原始檔
+    https://github.com/ouser555/ErgoKnife/tree/main/ergoknife-20230409
+    
+  * 燒錄檔
+    https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230409.hex
+  
+  * VIA設定檔
+    https://github.com/ouser555/ErgoKnife/blob/main/via%20config/ErgoKnife-20230409.json
+  
+* 版本特點
+  * 修正電腦關機後再開鍵盤連線會不正常的問題
+  
+  * 電腦休眠時RGB自動關閉
+    
+  * 支援VIA configurator 3.0.0
+    
+  * VIA RGB亮度拖動範圍限制在150以下，防止電流過載  
   
 ## 更新通知 20230123
   #### 配合使用VIA configurator 新版本2.10，新的via json設定檔
