@@ -1,3 +1,23 @@
+## 測試版
+  * 前一版反映有副手鍵盤Trackpoint漂移的情況，但手邊沒有這款鍵盤可以測試，就只能提供測試黨讓使用者自己測試看看能否解決著個問題。
+    * 前一版的修改為
+      * /rev1/config.h
+        ```
+        //#define SPLIT_USB_DETECT
+        //#define USB_SUSPEND_WAKEUP_DELAY 1000
+        //#define SPLIT_USB_TIMEOUT 2000
+        //#define SPLIT_USB_TIMEOUT_POLL 10
+        //#define SPLIT_WATCHDOG_ENABLE
+        //#define SPLIT_WATCHDOG_TIMEOUT 3000
+        ```
+      * /rule.mk
+        ```
+        WAIT_FOR_USB = yes
+        ```
+    * 測試版就是把這幾行拿掉
+      https://github.com/ouser555/ErgoKnife/blob/main/hex/ergoknife_rev1_v99-20230411-test.hex
+      
+  
 ## 更新通知 20230123
   #### 配合使用VIA configurator 新版本2.10，新的via json設定檔
   
